@@ -11,87 +11,76 @@ CHR=$2         # chromosome or interval (e.g. chr1)
 mkdir -p ${output}
 cd ${output}
 
-# ========================
-# 1. Alignment (BWA-MEM)
-# ========================
-RG="@RG\\tID:${ID}\\tPL:ILLUMINA\\tSM:${ID}\\tLB:${ID}\\tPU:1"
+# 1. BWA-MEM alignment
+# --------------------------
+RG="@RG\\tID:${SAMPLE}\\tPL:ILLUMINA\\tSM:${SAMPLE}\\tLB:${SAMPLE}\\tPU:1"
 
-bwa mem \
-    -t 20 \
-    -R "${RG}" \
+bwa mem -t 20 -R "${RG}" \
     ${ref} \
-    ${input}/${ID}_1.fastq.gz \
-    ${input}/${ID}_2.fastq.gz \
-| samtools view -@ 10 -hSb \
-> ${ID}.bam
+    ${input}/${SAMPLE}_1.fastq.gz \
+    ${input}/${SAMPLE}_2.fastq.gz \
+| samtools view -@ 10 -hSb > ${SAMPLE}.bam
 
-# ========================
+# --------------------------
 # 2. Sort and index BAM
-# ========================
-samtools sort -@ 10 \
-    -o ${ID}.sorted.bam \
-    ${ID}.bam
+# --------------------------
+samtools sort -@ 10 -o ${SAMPLE}.sorted.bam ${SAMPLE}.bam
+samtools index ${SAMPLE}.sorted.bam
+rm ${SAMPLE}.bam
 
-samtools index ${ID}.sorted.bam
-rm ${ID}.bam
-
-# ========================
+# --------------------------
 # 3. Remove PCR duplicates (Sambamba)
-# ========================
-sambamba markdup \
-    -t 10 \
-    --remove-duplicates \
-    ${ID}.sorted.bam \
-    ${ID}.sorted.markdup.bam
+# --------------------------
+sambamba markdup -t 10 --remove-duplicates \
+    ${SAMPLE}.sorted.bam ${SAMPLE}.sorted.markdup.bam
+samtools index ${SAMPLE}.sorted.markdup.bam
 
-samtools index ${ID}.sorted.markdup.bam
-
-# ========================
+# --------------------------
 # 4. GATK HaplotypeCaller (GVCF)
-# ========================
+# --------------------------
 ${gatk} HaplotypeCaller \
     --native-pair-hmm-threads 30 \
     -R ${ref} \
-    -I ${ID}.sorted.markdup.bam \
+    -I ${SAMPLE}.sorted.markdup.bam \
     -ERC GVCF \
     -L ${CHR} \
-    -O ${ID}.${CHR}.g.vcf.gz
+    -O ${SAMPLE}.${CHR}.g.vcf.gz
 
-tabix -p vcf ${ID}.${CHR}.g.vcf.gz
+tabix -p vcf ${SAMPLE}.${CHR}.g.vcf.gz
 
 
-###############################################################################
-# Steps below are cohort-level analyses
-# Run AFTER all samples and chromosomes are completed
-###############################################################################
+# --------------------------
+# 5.GLnexus joint genotyping, filtering
+# --------------------------
+chroms=$(seq -f "chr%g" 1 18) 
 
-# ========================
-# 5. Joint genotyping (GLnexus)
-# ========================
-# Merge all per-sample GVCFs into a cohort VCF
+for CHR in "${chroms[@]}"; do
+    echo "[$(date)] Processing ${CHR}"
 
-glnexus_cli \
-    --config gatk \
-    *.g.vcf.gz \
-> cohort.bcf
+    # --------------------------
+    # 1. Prepare per-chr GVCF list
+    # --------------------------
+    ls ${input}/*/*${CHR}.*g.vcf.gz > ${CHR}.list
 
-bcftools view cohort.bcf -Oz -o cohort.vcf.gz
-tabix -p vcf cohort.vcf.gz
+    # --------------------------
+    # 2. Joint genotyping with GLnexus
+    # --------------------------
+    singularity exec -B ${input}:${input} /home/guilu/software/glnexus.sif \
+        glnexus_cli --config gatk --list ${CHR}.list --dir ${CHR}.GLnexus.DB
 
-# ========================
-# 6. Variant filtering
-# ========================
-# Filtering criteria:
-#   i)   Read depth >= 3
-#   ii)  Genotype quality >= 10
-#   iii) Biallelic variants only
-#   iv)  MAF > 0.05
-#   v)   Missing genotype rate < 20%
+    bcftools view ${CHR}.GLnexus.DB/cohort.bcf | bgzip -@ ${THREADS} -c > ${CHR}.cohort.vcf.gz
+    tabix -p vcf ${CHR}.cohort.vcf.gz
 
-bcftools view \
-    -m2 -M2 -v snps,indels \
-    -i 'INFO/DP>=3 && FORMAT/GQ>=10 && INFO/MAF>0.05 && F_MISSING<0.2' \
-    cohort.vcf.gz \
-    -Oz -o cohort.filtered.vcf.gz
+    # --------------------------
+    # 3. Per-chr filtering & rename
+    # --------------------------
+    singularity exec /home/guilu/software/087.vcftools.sif \
+        vcftools --gzvcf ${CHR}.cohort.vcf.gz \
+                 --max-missing 0.8 --maf 0.01 --min-alleles 2 --max-alleles 2 \
+                 --recode --recode-INFO-all --stdout | bgzip -c > ${CHR}.filtered.vcf.gz
+    tabix -p vcf ${CHR}.filtered.vcf.gz
 
-tabix -p vcf cohort.filtered.vcf.gz
+    bcftools reheader -s rename.IDS2 ${CHR}.filtered.vcf.gz -o ${CHR}.rename.vcf.gz
+    bcftools +fill-tags ${CHR}.rename.vcf.gz -- -t AC,AN | bgzip -c > ${CHR}.addAC.vcf.gz
+    tabix -p vcf ${CHR}.addAC.vcf.gz
+done
