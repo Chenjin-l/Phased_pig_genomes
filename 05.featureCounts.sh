@@ -52,6 +52,7 @@ do
         cat $i.rmdup | grep -Ev "chrX|chrY|chrM|NW" |awk '{print $1,$NF}' |sed 's/gene://g' |sed "s/TPM/$name/g" |tr " " "\t" |csvtk uniq -f 1 -Tt  >${i%%.*}.
 done
 csvtk join -Tt `ls *TMP.tmp` >$name1.TPM.txt
+
 #gene Counts matrix
 ls ./ |grep  "featureCounts.txt$" >all.sample.featureCounts.files
 for i in `cat all.sample.featureCounts.files`
