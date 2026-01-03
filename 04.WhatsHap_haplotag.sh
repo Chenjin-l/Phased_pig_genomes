@@ -66,3 +66,7 @@ samtools  view -h $BAM  -@20 |awk '{if($0~/HP:i:2/ || $1~/@/)print }' | samtools
 samtools index $ID.Hap2.bam -@20
 samtools stats $ID.Hap2.bam  -@20 >$ID.Hap2.stats
 
+Total=`fgrep "reads mapped:" $ID.RNAphased.stats |awk '{print $NF}' `
+Hap1=`fgrep "reads mapped:" $ID.Hap1.stats |awk '{print $NF}' `
+Hap2=`fgrep "reads mapped:" $ID.Hap2.stats |awk '{print $NF}' `
+awk -v ID=$ID -v a=$Total -v b=$Hap1 -v c=$Hap2 'BEGIN{print ID,a,b,c,b/c,(b+c)/a}' >$ID.phased.summary
