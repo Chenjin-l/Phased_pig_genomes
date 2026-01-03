@@ -71,15 +71,24 @@ for CHR in "${chroms[@]}"; do
     bcftools view ${CHR}.GLnexus.DB/cohort.bcf | bgzip -@ ${THREADS} -c > ${CHR}.cohort.vcf.gz
     tabix -p vcf ${CHR}.cohort.vcf.gz
 
-    # --------------------------
-    # 3. Per-chr filtering & rename
-    # --------------------------
+# --------------------------
+# 6. Variant filtering
+# --------------------------
+    bcftools view \
+        -m2 -M2 -v snps,indels \
+        -i 'INFO/DP>=3 && FORMAT/GQ>=10 && INFO/MAF>0.05 && F_MISSING<0.2' \
+        ${CHR}.cohort.vcf.gz \
+        -Oz -o ${CHR}.filt.vcf.gz
+    tabix -p vcf ${CHR}.filt.vcf.gz
+
     singularity exec /home/guilu/software/087.vcftools.sif \
-        vcftools --gzvcf ${CHR}.cohort.vcf.gz \
+        vcftools --gzvcf ${CHR}.filt.vcf.gz \
                  --max-missing 0.8 --maf 0.01 --min-alleles 2 --max-alleles 2 \
                  --recode --recode-INFO-all --stdout | bgzip -c > ${CHR}.filtered.vcf.gz
     tabix -p vcf ${CHR}.filtered.vcf.gz
-
+    # --------------------------
+    # 7. rename
+    # --------------------------
     bcftools reheader -s rename.IDS2 ${CHR}.filtered.vcf.gz -o ${CHR}.rename.vcf.gz
     bcftools +fill-tags ${CHR}.rename.vcf.gz -- -t AC,AN | bgzip -c > ${CHR}.addAC.vcf.gz
     tabix -p vcf ${CHR}.addAC.vcf.gz
