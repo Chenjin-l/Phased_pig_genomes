@@ -15,7 +15,6 @@ for CHR in "${chroms[@]}"; do
     bcftools view ${CHR}.GLnexus.DB/cohort.bcf | bgzip -@ ${THREADS} -c > ${CHR}.cohort.vcf.gz
     tabix -p vcf ${CHR}.cohort.vcf.gz
 
-
     bcftools view \
         -m2 -M2 -v snps,indels \
         -i 'INFO/DP>=3 && FORMAT/GQ>=10 && INFO/MAF>0.05 && F_MISSING<0.2' \
