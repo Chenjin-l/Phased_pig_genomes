@@ -34,26 +34,4 @@ while read -r ID BAM; do
     echo "[$(date)] Finished sample: ${ID}"
 done < ${BAMLIST}
 
-# Generate gene list (Geneid + Length)
-awk 'NR>2 {print $1"\t"$6}' \
-    ${Inpath2}/F2.featureCounts.txt \
-> gene.list
-
-for i in F2-*.featureCounts.txt; do
-    id=$(basename "$i" .featureCounts.txt)
-
-    # Total (RNAphased / All reads)
-    cut -f7 "$i" | sed '1,2d' > ${id}.countAll
-
-    # Hap1
-    cut -f7 ${Inpath2}/${id}.Hap1.featureCounts.txt | sed '1,2d' > ${id}.countHap1
-
-    # Hap2
-    cut -f7 ${Inpath2}/${id}.Hap2.featureCounts.txt | sed '1,2d' > ${id}.countHap2
-done
-
-paste gene.list F2-*.countAll > merged_All_counts.txt
-paste gene.list F2-*.countHap1 > merged_Hap1_counts.txt
-paste gene.list F2-*.countHap2 > merged_Hap2_counts.txt
-
 
