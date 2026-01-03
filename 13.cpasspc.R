@@ -11,7 +11,7 @@ library(future)
 plan(sequential)               # force single-threaded execution
 options(future.globals.maxSize = Inf)  # allow large global objects
 # Load CPASSOC functions
-source("/home/Mzhou/02.F2/z02data/14regnie/05cpasspc/FunctionSet.R")  
+source("FunctionSet.R")   #https://github.com/Ax3man/vdBijl_etal_2025_GuppyColorPatterns/blob/main/sequencing/gwas/CPASSOC/FunctionSet.R
 
 # ----------------------------
 # 1. Define trait files and names
