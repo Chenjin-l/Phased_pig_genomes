@@ -30,16 +30,11 @@ suppressPackageStartupMessages({
   library(dplyr)
 })
 
-## =======================
-## Input files
-## =======================
 hap1_file <- "merged_Hap1_counts.txt"
 hap2_file <- "merged_Hap2_counts.txt"
 out_file  <- "Imprinting_test_with_category.txt"
 
-## =======================
-## Read data
-## =======================
+
 hap1 <- read.table(hap1_file, header=TRUE, check.names=FALSE)
 hap2 <- read.table(hap2_file, header=TRUE, check.names=FALSE)
 
@@ -48,9 +43,6 @@ genenames <- as.character(hap1[,1])
 hap1 <- hap1 %>% select(-1) %>% mutate_all(as.numeric) %>% as.matrix() + 0.001
 hap2 <- hap2 %>% select(-1) %>% mutate_all(as.numeric) %>% as.matrix() + 0.001
 
-## =======================
-## Paternal ratio
-## =======================
 total_expr <- hap1 + hap2
 low_expr <- total_expr < 5
 
@@ -66,9 +58,6 @@ keep <- apply(
 paternal_ratio <- paternal_ratio[keep, ]
 genenames <- genenames[keep]
 
-## =======================
-## Statistics per gene
-## =======================
 gene_stat <- apply(paternal_ratio, 1, function(x) {
 
   x <- na.omit(x)
@@ -107,9 +96,6 @@ gene_stat <- apply(paternal_ratio, 1, function(x) {
 gene_stat <- as.data.frame(t(gene_stat))
 gene_stat$Genename <- genenames
 
-## =======================
-## Classification
-## =======================
 gene_stat$Category <- "Consistently_balanced"
 
 sig <- !is.na(gene_stat$P) & gene_stat$P < 1e-8
@@ -117,9 +103,6 @@ sig <- !is.na(gene_stat$P) & gene_stat$P < 1e-8
 gene_stat$Category[sig & gene_stat$Major >= 0.8] <- "Stable_biased"
 gene_stat$Category[sig & gene_stat$Major <  0.8] <- "Variably_biased"
 
-## =======================
-## Output
-## =======================
 gene_stat <- gene_stat %>%
   select(
     Genename,
@@ -143,7 +126,5 @@ write.table(
 
 cat("Done. Output:", out_file, "\\n")
 EOF
-
-chmod +x ${OUT}
 
 Rscript Imprinting_analysis_phased_counts.R
