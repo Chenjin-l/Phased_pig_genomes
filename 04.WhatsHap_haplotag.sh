@@ -1,30 +1,20 @@
-line0=$1                       # line number in bamfiles list
+
+line0=${PBS_ARRAYID}                       # line number in bamfiles list
 OUTPUT=$2                      # output directory
-ref=$3                         # reference genome fasta
-INPUT=$4                       # directory with ${CHR}.shapiet.vcf.gz
-THREADS=${5:-20}               # threads
+ref=susScr11.fa                         # reference genome fasta
+INPUT=${CHR}.shapiet.vcf.gz                       # directory with ${CHR}.shapiet.vcf.gz
+THREADS=20               # threads
 
 mkdir -p ${OUTPUT}
 cd ${OUTPUT}
 
-# --------------------------
-# Sample extraction
-# --------------------------
 ID=$(sed -n "${line0}p" ${OUTPUT}/F2.JR.bamfiles | awk '{print $1}')
 BAM=$(sed -n "${line0}p" ${OUTPUT}/F2.JR.bamfiles | awk '{print $2}')
 ID2=$(echo $ID | sed 's/.$//' | fgrep -wf - ${OUTPUT}/F2.infor | awk '{print "F2-"$2}')
 
-echo "[$(date)] Processing sample: ${ID} (phased VCF ID: ${ID2})"
-
-# --------------------------
-# Chromosomes to process
-# --------------------------
 chroms=( $(awk '{print $1}' ${ref}.fai | sed -n 1,20p | tr '\n' ' ') )
 echo "[$(date)] Chromosomes: ${chroms[*]}"
 
-# --------------------------
-# Per-chromosome haplotagging (parallel)
-# --------------------------
 for CHR in "${chroms[@]}"; do
 {
     echo "[$(date)] Processing ${CHR}"
@@ -55,12 +45,8 @@ for CHR in "${chroms[@]}"; do
     samtools index ${ID}.${CHR}.phased.bam -@${THREADS}
 
 } &
-done
-wait
+done && wait
 
-# --------------------------
-# Merge per-chr phased BAMs into single BAM
-# --------------------------
 ls ${ID}.*.phased.bam > ${ID}.bamfiles2
 samtools cat -b ${ID}.bamfiles2 -o ${ID2}.RNAphased.bam
 samtools index -@${THREADS} ${ID2}.RNAphased.bam
