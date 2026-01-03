@@ -50,3 +50,19 @@ done && wait
 ls ${ID}.*.phased.bam > ${ID}.bamfiles2
 samtools cat -b ${ID}.bamfiles2 -o ${ID2}.RNAphased.bam
 samtools index -@${THREADS} ${ID2}.RNAphased.bam
+
+##
+ID=`sed -n "${line0}p" ${OUTPUT}/RNAphased.bamfiles|awk '{print $1}'`
+BAM=`sed -n "${line0}p" ${OUTPUT}/RNAphased.bamfiles|awk '{print $2}'`
+
+####
+samtools stats $BAM -@20 >$ID.RNAphased.stats &
+
+samtools  view -h $BAM  -@20 |awk '{if($0~/HP:i:1/ || $1~/@/)print }' | samtools view -h -Sb -@10 >$ID.Hap1.bam
+samtools index $ID.Hap1.bam -@20
+samtools stats $ID.Hap1.bam  -@20 >$ID.Hap1.stats
+
+samtools  view -h $BAM  -@20 |awk '{if($0~/HP:i:2/ || $1~/@/)print }' | samtools view -h -Sb -@10 >$ID.Hap2.bam
+samtools index $ID.Hap2.bam -@20
+samtools stats $ID.Hap2.bam  -@20 >$ID.Hap2.stats
+
