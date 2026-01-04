@@ -8,10 +8,10 @@ library(Matrix)
 library(MASS)
 library(future)
 
-plan(sequential)               # force single-threaded execution
-options(future.globals.maxSize = Inf)  # allow large global objects
+plan(sequential)                         # force single-threaded execution
+options(future.globals.maxSize = Inf)    # allow large global objects
 # Load CPASSOC functions
-source("FunctionSet.R")   #https://github.com/Ax3man/vdBijl_etal_2025_GuppyColorPatterns/blob/main/sequencing/gwas/CPASSOC/FunctionSet.R
+source("FunctionSet.R")                  #https://doi.org/10.1007/978-1-4939-7274-6_22
 
 # ----------------------------
 # 1. Define trait files and names
