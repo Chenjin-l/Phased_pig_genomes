@@ -1,9 +1,8 @@
-
 ## =========================================================
-## Generate R script for phased_counts analysis
+## Generate R script for Identification of bias genes
 ## =========================================================
 
-OUT=phased_counts.R
+OUT=biased_gene_analysis.R
 
 cat << 'EOF' > ${OUT}
 #!/usr/bin/env Rscript
@@ -109,4 +108,4 @@ write.table(
 cat("Done. Output:", out_file, "\\n")
 EOF
 
-Rscript Imprinting_analysis_phased_counts.R
+Rscript biased_gene_analysis.R
