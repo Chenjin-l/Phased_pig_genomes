@@ -22,14 +22,11 @@ ARGS <- commandArgs(trailingOnly = TRUE)
 file_counts = ARGS[1] # Counts file. Row is gene, column is sample; rowname is gene id, colname is sample id
 #file_tpm = ARGS[2] # TPM file. Row is gene, column is sample; rowname is gene id, colname is sample id
 name=ARGS[2]
-#tss_annot_file = ARGS[3] # TSS annotation file
-#vcf.fn = ARGS[4] # Input data for genotype PCA. genotype data from imputation (VCF format)
-#tis = ARGS[3] # Prefix of output file, like tissue name
+
 
 if (!file.exists(file_counts)) { stop("Can not find the file_counts") }
 #if (!file.exists(file_tpm)) { stop("Can not find the file_tpm") }
-#if (!file.exists(tss_annot_file)) { stop("Can not find the tss_annot_file") }
-#if (!file.exists(vcf.fn)) { stop("Can not find the vcf.fn") }
+
 
 setwd("./")
 #----------------------------------------------------------------------------
