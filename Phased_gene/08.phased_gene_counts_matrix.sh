@@ -16,3 +16,7 @@ for i in `ls ${Inpath}/F2-*.featureCounts.txt`;do
     rm id.countall id.countHap1 id.countHap2
     pastestr=$pastestr' '${id}'.count'
 done
+
+echo "$pastestr >F2Allind.quantile" > Merge.sh
+bash Merge.sh
+rm Merge.sh *.count F2ind.quantile
