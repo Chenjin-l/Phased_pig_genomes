@@ -1,6 +1,6 @@
 
 PLINK_PREFIX="/your/path/to/genotypes"      # PLINK genotype prefix (bed/bim/fam)
-EXPR_FILE="/your/path/to/expression.bed"    # Gene expression matrix
+EXPR_FILE="/your/path/to/expression.bed"    # Gene expression matrix  ration(paternal_counts/all_counts);indivual-level;phased-level;POE(paternal,maternal)
 
 PREFIX="/your/path/to/output_prefix"        # Output prefix
 SINGULARITY_IMAGE="/your/path/to/tensorqtl_GPU.simg"  # Singularity image
