@@ -1,6 +1,6 @@
 out=path/to/output
 pvcf=path/to/${CHR}.shapiet.vcf.gz  # phased genotype VCF files
-pmap=path/to/map            # genetic map files
+pmap=path/to/map                    # genetic map files
 
 export _JAVA_OPTIONS="-Djava.io.tmpdir=/home/Mzhou/02.F2/log/tmp"
 
