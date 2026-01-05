@@ -18,10 +18,10 @@ for i in `ls ${Inpath}/F2-*.featureCounts.txt`;do
 done
 
 ## =========================================================
-## Generate R script for imprinting analysis
+## Generate R script for phased_counts analysis
 ## =========================================================
 
-OUT=Imprinting_analysis_phased_counts.R
+OUT=phased_counts.R
 
 cat << 'EOF' > ${OUT}
 #!/usr/bin/env Rscript
