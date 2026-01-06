@@ -3,7 +3,7 @@ library(dplyr)
 # --------------------------------------------------
 # 1. Read chromosome length file
 # --------------------------------------------------
-# Input file format: Chr  Length
+# Input file format: Chr  Length  #chr_length.txt from run_KING_IBD.sh
 chr_lengths <- read.table(
   "chr_length.txt",
   header = TRUE,
