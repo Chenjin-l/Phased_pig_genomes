@@ -11,6 +11,18 @@ export PATH=/home/Mzhou/anaconda3/envs/rnaqc/bin:$PATH
 # ---------------------------
 VCF="/home/Mzhou/02.F2/2025-7-7/vcf/merge.vcf.gz"
 SDF="/home/Mzhou/00.Genome/susScr11_analysis_set.sdf"
+
+#1.get ref_def
+###-----------------------
+ref="/home/Mzhou/00.Genome/susScr11.fa"
+ref_name=`echo $ref |awk -F "/" '{print $NF}' |sed 's/.fa//g'`
+
+export _JAVA_OPTIONS="-Djava.io.tmpdir=/home/Mzhou/02.F2/log/tmp"
+source /home/Mzhou/anaconda3/bin/activate rnaqc
+rtg format -o ${ref_name}_analysis_set.sdf $ref
+sexcombine.vcf.gz
+###-------------------------
+
 TRIO_INFO="/home/Mzhou/02.F2/2025-7-7/vcf/mender/1empt_new.txt"
 OUTPUT_DIR="/home/Mzhou/02.F2/2025-7-7/vcf/mender/output"
 
