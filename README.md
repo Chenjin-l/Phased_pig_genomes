@@ -1,2 +1,3 @@
 # Phased_pig_genomes
-Phasing genomic and transcriptomic data Enhance Novel Imprinted Genes, eQTLs and GWAS Discovery in a Eurasian hybrid F2 pig 
+Phasing parental haplotypes uncovers novel imprinted genes, enhances eQTL discovery, and reveals paternal-driven growth regulation in hybrid pigs.
+
